@@ -3,353 +3,381 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>루틴보드</title></title>
+<title>오늘의 루틴 보드</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="루틴 보드">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#12161d;
-    --panel:#1b212b;
-    --panel-2:#212836;
-    --line:#2c3646;
-    --amber:#f0a84e;
-    --amber-dim:#8a6a3c;
-    --teal:#5fc9b8;
-    --paper:#d7dee8;
-    --paper-dim:#8892a3;
-    --red:#e8664f;
-    --mono:'JetBrains Mono', monospace;
-    --sans:'Noto Sans KR', sans-serif;
+  :root {
+    --bg-main: #f5f5f7; /* 애플 특유의 라이트 그레이 */
+    --card-bg: #ffffff;
+    --text-main: #1d1d1f; /* 애플 텍스트 컬러 */
+    --text-sub: #86868b;
+    --apple-blue: #0071e3; /* 애플 시그니처 블루 */
+    --apple-blue-dim: #e8f2fc;
+    --soft-peach: #fff1ed;
+    --accent-orange: #ff6b4a;
+    --line-color: #e5e5ea;
+    
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(1200px 600px at 50% -10%, #1c2431 0%, var(--ink) 60%);
-    color:var(--paper);
-    font-family:var(--sans);
-    min-height:100vh;
-    padding:32px 20px 80px;
-  }
-  .board{
-    max-width:760px;
-    margin:0 auto;
+  
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body { padding: 40px 20px 100px; }
+  
+  .board {
+    max-width: 680px; /* 조금 더 조밀하고 예쁘게 축소 */
+    margin: 0 auto;
   }
 
-  /* ---------- HEADER ---------- */
-  .board-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    border-bottom:2px solid var(--amber);
-    padding-bottom:14px;
-    margin-bottom:6px;
+  /* ---------- HEADER (애플 & 뉴스레터 감성) ---------- */
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    margin-bottom: 8px;
   }
-  .board-header .eyebrow{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:3px;
-    color:var(--teal);
-    margin-bottom:6px;
+  .board-header .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent-orange);
+    margin-bottom: 6px;
   }
-  .board-header h1{
-    font-family:var(--mono);
-    font-weight:800;
-    font-size:26px;
-    letter-spacing:1px;
-    margin:0;
-    color:#fff;
+  .board-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0;
+    color: var(--text-main);
   }
-  .board-header .clock{
-    font-family:var(--mono);
-    font-size:28px;
-    font-weight:700;
-    color:var(--amber);
-    text-align:right;
-    font-variant-numeric:tabular-nums;
+  .board-header .clock {
+    font-family: var(--sans);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
-  .board-header .clock .date{
-    display:block;
-    font-size:12px;
-    color:var(--paper-dim);
-    font-weight:500;
-    letter-spacing:1px;
-    margin-top:2px;
+  .board-header .clock .date {
+    display: block;
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 500;
+    letter-spacing: 0;
+    margin-top: 4px;
   }
-  .sub-line{
-    display:flex;
-    justify-content:space-between;
-    font-family:var(--mono);
-    font-size:11px;
-    color:var(--paper-dim);
-    letter-spacing:1px;
-    padding:8px 2px 24px;
-    border-bottom:1px dashed var(--line);
-    margin-bottom:22px;
+  
+  /* 뉴스레터 스타일 선 */
+  .sub-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-sub);
+    padding: 16px 20px;
+    background: var(--card-bg);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 24px;
   }
-  .progress-track{
-    display:flex;
-    align-items:center;
-    gap:8px;
+  .progress-track {
+    display: flex;
+    align-items: center;
   }
-  .progress-bar{
-    width:120px;
-    height:6px;
-    background:var(--panel-2);
-    border:1px solid var(--line);
+  .progress-bar {
+    width: 100px;
+    height: 8px;
+    background: #e5e5ea;
+    border-radius: 99px;
+    overflow: hidden;
   }
-  .progress-fill{
-    height:100%;
-    background:var(--teal);
-    width:0%;
-    transition:width .3s ease;
-  }
-
-  /* ---------- ROW ---------- */
-  .row{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-left:4px solid var(--amber-dim);
-    margin-bottom:14px;
-    padding:16px 18px;
-    transition:border-color .2s ease, background .2s ease;
-  }
-  .row.done{
-    border-left-color:var(--teal);
-    background:#182027;
-    opacity:.72;
-  }
-  .row-top{
-    display:flex;
-    align-items:flex-start;
-    gap:14px;
-  }
-  .check{
-    flex:0 0 auto;
-    width:26px;height:26px;
-    border:2px solid var(--paper-dim);
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    font-family:var(--mono);
-    font-size:14px;
-    color:transparent;
-    user-select:none;
-    margin-top:2px;
-  }
-  .row.done .check{
-    border-color:var(--teal);
-    background:var(--teal);
-    color:var(--ink);
-  }
-  .row-main{flex:1 1 auto; min-width:0;}
-  .row-meta{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:2px;
-    color:var(--amber);
-    margin-bottom:4px;
-  }
-  .row-title{
-    font-size:17px;
-    font-weight:700;
-    color:#fff;
-    margin:0 0 4px;
-  }
-  .row-desc{
-    font-size:13px;
-    color:var(--paper-dim);
-    margin:0 0 12px;
-    line-height:1.5;
-  }
-  .row-actions{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  .btn{
-    font-family:var(--mono);
-    font-size:12px;
-    letter-spacing:.5px;
-    padding:9px 14px;
-    border:1px solid var(--line);
-    background:var(--panel-2);
-    color:var(--paper);
-    cursor:pointer;
-    text-decoration:none;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    transition:all .15s ease;
-  }
-  .btn:hover{ border-color:var(--amber); color:var(--amber); }
-  .btn.primary{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--ink);
-    font-weight:700;
-  }
-  .btn.primary:hover{ background:#ffbb63; color:var(--ink); }
-  .btn.ghost{ background:transparent; }
-  .btn:disabled{ opacity:.5; cursor:default; }
-
-  /* ---------- AI PANEL ---------- */
-  .ai-panel{
-    margin-top:12px;
-    padding-top:14px;
-    border-top:1px dashed var(--line);
-  }
-  .ai-panel input[type=text]{
-    width:100%;
-    background:var(--ink);
-    border:1px solid var(--line);
-    color:var(--paper);
-    font-family:var(--sans);
-    font-size:14px;
-    padding:10px 12px;
-    margin-bottom:10px;
-  }
-  .ai-panel input[type=text]:focus{ outline:none; border-color:var(--teal); }
-  .ai-result{
-    margin-top:12px;
-    display:none;
-    flex-direction:column;
-    gap:8px;
-  }
-  .ai-result.show{ display:flex; }
-  .ai-sentence{
-    font-family:var(--mono);
-    font-size:13px;
-    line-height:1.6;
-    color:var(--paper);
-    background:var(--panel-2);
-    border-left:2px solid var(--teal);
-    padding:8px 10px;
-  }
-  .ai-sentence b{ color:var(--teal); }
-  .ai-error{ color:var(--red); font-size:12px; font-family:var(--mono); margin-top:8px; }
-
-  /* ---------- VIDEO FEED ---------- */
-  .feed-wrap{
-    margin-top:14px;
-    padding-top:14px;
-    border-top:1px dashed var(--line);
-  }
-  .feed-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:10px;
-  }
-  .feed-head span{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:1px;
-    color:var(--paper-dim);
-  }
-  .feed-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
-    gap:10px;
-  }
-  .feed-card{
-    display:block;
-    text-decoration:none;
-    color:var(--paper);
-    background:var(--panel-2);
-    border:1px solid var(--line);
-  }
-  .feed-card:hover{ border-color:var(--amber); }
-  .feed-thumb{
-    width:100%;
-    aspect-ratio:16/9;
-    object-fit:cover;
-    display:block;
-    background:var(--ink);
-  }
-  .feed-info{ padding:8px 9px; }
-  .feed-title{
-    font-size:12px;
-    line-height:1.4;
-    font-weight:500;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
-    margin:0 0 4px;
-  }
-  .feed-channel{
-    font-family:var(--mono);
-    font-size:10px;
-    color:var(--teal);
-    letter-spacing:.5px;
-  }
-  .feed-loading, .feed-empty{
-    font-family:var(--mono);
-    font-size:12px;
-    color:var(--paper-dim);
-    padding:10px 0;
+  .progress-fill {
+    height: 100%;
+    background: var(--apple-blue);
+    width: 0%;
+    border-radius: 99px;
+    transition: width .4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* ---------- CHANNEL LIST ---------- */
-  .channel-chips{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin-bottom:12px;
+  /* ---------- CARD ROW (부드럽고 깔끔하게) ---------- */
+  .row {
+    background: var(--card-bg);
+    border-radius: 18px;
+    margin-bottom: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all .3s ease;
+    border: 1px solid transparent;
   }
-  .channel-chip{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    background:var(--panel-2);
-    border:1px solid var(--line);
-    padding:6px 8px;
-    font-size:12px;
+  .row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
   }
-  .channel-chip a{ color:var(--paper); text-decoration:none; font-weight:500; }
-  .channel-chip a:hover{ color:var(--amber); }
-  .channel-chip .del{
-    background:none;border:none;color:var(--paper-dim);
-    cursor:pointer;font-size:14px;line-height:1;padding:0;
+  .row.done {
+    background: #fafafa;
+    border-color: var(--line-color);
+    box-shadow: none;
   }
-  .channel-chip .del:hover{ color:var(--red); }
-  .add-channel{
-    display:flex;
-    gap:8px;
-    margin-top:4px;
-    flex-wrap:wrap;
+  .row.done:hover { transform: none; }
+  
+  .row-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
   }
-  .add-channel input{
-    flex:1;
-    min-width:140px;
-    background:var(--ink);
-    border:1px solid var(--line);
-    color:var(--paper);
-    font-size:13px;
-    padding:8px 10px;
+  
+  /* 동글동글 귀여운 체크박스 */
+  .check {
+    flex: 0 0 auto;
+    width: 28px; height: 28px;
+    border: 2px solid #d1d1d6;
+    border-radius: 50%; /* 완전 동그라미로 변경 */
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    color: transparent;
+    user-select: none;
+    margin-top: 2px;
+    transition: all .2s ease;
+    background: #fff;
   }
-  .add-channel input:focus{ outline:none; border-color:var(--teal); }
-  .channel-note{
-    font-family:var(--mono);
-    font-size:10px;
-    color:var(--paper-dim);
-    margin-top:6px;
+  .check:hover {
+    border-color: var(--apple-blue);
+    background: var(--apple-blue-dim);
+  }
+  .row.done .check {
+    border-color: var(--apple-blue);
+    background: var(--apple-blue);
+    color: #fff;
+  }
+  
+  .row-main { flex: 1 1 auto; min-width: 0; }
+  .row-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+  }
+  .row-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0 0 6px;
+  }
+  .row.done .row-title {
+    color: var(--text-sub);
+    text-decoration: line-through;
+  }
+  .row-desc {
+    font-size: 14px;
+    color: var(--text-sub);
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+  
+  /* 애플 감성 알약모양 버튼 */
+  .row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 20px; /* 알약 모양 */
+    border: 1px solid var(--line-color);
+    background: #f5f5f7;
+    color: var(--text-main);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .2s ease;
+  }
+  .btn:hover { background: #e8e8ed; border-color: #d1d1d6; }
+  .btn.primary {
+    background: var(--apple-blue);
+    border-color: var(--apple-blue);
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn.primary:hover { background: #0077ed; }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--apple-blue); }
+  .btn.ghost:hover { background: var(--apple-blue-dim); }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  /* ---------- AI PANEL (말끔한 텍스트 상자) ---------- */
+  .ai-panel {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-color);
+  }
+  .ai-panel input[type=text] {
+    width: 100%;
+    background: #f5f5f7;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: var(--text-main);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    transition: all .2s ease;
+  }
+  .ai-panel input[type=text]:focus { outline: none; border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 3px var(--apple-blue-dim); }
+  
+  .ai-result {
+    margin-top: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ai-result.show { display: flex; }
+  .ai-sentence {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-main);
+    background: var(--soft-peach);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .ai-sentence b { color: var(--accent-orange); }
+  .ai-error { color: var(--accent-orange); font-size: 13px; margin-top: 8px; }
+
+  /* ---------- VIDEO FEED (핀터레스트/뉴스레터 감성 카드) ---------- */
+  .feed-wrap {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-color);
+  }
+  .feed-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .feed-head span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    letter-spacing: 0.5px;
+  }
+  .feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+  }
+  .feed-card {
+    display: block;
+    text-decoration: none;
+    color: var(--text-main);
+    background: #fff;
+    border: 1px solid var(--line-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all .2s ease;
+  }
+  .feed-card:hover { transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-color: #d1d1d6; }
+  .feed-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    background: #e5e5ea;
+  }
+  .feed-info { padding: 10px; }
+  .feed-title {
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0 0 6px;
+  }
+  .feed-channel {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--apple-blue);
+  }
+  .feed-loading, .feed-empty {
+    font-size: 13px;
+    color: var(--text-sub);
+    padding: 12px 0;
   }
 
-  .board-footer{
-    text-align:center;
-    font-family:var(--mono);
-    font-size:11px;
-    color:var(--paper-dim);
-    letter-spacing:1px;
-    margin-top:30px;
-    line-height:1.7;
+  /* ---------- CHANNEL LIST (동글동글한 태그 칩) ---------- */
+  .channel-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .channel-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--apple-blue-dim);
+    border-radius: 14px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .channel-chip a { color: var(--apple-blue); text-decoration: none; }
+  .channel-chip a:hover { text-decoration: underline; }
+  .channel-chip .del {
+    background: none; border: none; color: #929297;
+    cursor: pointer; font-size: 12px; padding: 0 0 0 2px;
+  }
+  .channel-chip .del:hover { color: var(--accent-orange); }
+  
+  .add-channel {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .add-channel input {
+    flex: 1;
+    min-width: 140px;
+    background: #f5f5f7;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  .add-channel input:focus { outline: none; border-color: var(--apple-blue); background: #fff; }
+  .channel-note {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-top: 8px;
   }
 
-  ::selection{ background:var(--amber); color:var(--ink); }
+  .board-footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-top: 40px;
+    line-height: 1.8;
+  }
+
+  ::selection { background: var(--apple-blue-dim); color: var(--apple-blue); }
 </style>
 </head>
 <body>
@@ -380,7 +408,7 @@
         <p class="row-title">손에 잡히는 경제</p>
         <p class="row-desc">손경제 공부방 게시판에서 스크립트를 읽고, 유튜브 라이브 탭으로 바로 이동해요.</p>
         <div class="row-actions">
-          <a class="btn primary" href="https://www.imbc.com/broad/radio/fm/economy/v2/setting/corner/daily/3709975_76330.html" target="_blank" rel="noopener">📄 손경제 공부방 (스크립트)</a>
+          <a class="btn primary" href="https://www.imbc.com/broad/radio/fm/economy/v2/setting/corner/daily/3709975_76330.html" target="_blank" rel="noopener">📄 스크립트 읽기</a>
           <a class="btn" href="https://www.youtube.com/@%EC%86%90%EA%B2%BD%EC%A0%9C/streams" target="_blank" rel="noopener">▶ 유튜브 라이브</a>
         </div>
       </div>
@@ -398,7 +426,7 @@
         <div class="ai-panel">
           <input type="text" id="koreanInput" placeholder="예: 오늘 좀 피곤해서 일찍 자야겠어" />
           <div class="row-actions">
-            <button class="btn primary" id="genBtn" onclick="generateSentences()">✨ 영어 문장 5개 만들기</button>
+            <button class="btn primary" id="genBtn" onclick="generateSentences()">✨ 영어 문장 만들기</button>
           </div>
           <div class="ai-error" id="aiError" style="display:none;"></div>
           <div class="ai-result" id="aiResult"></div>
@@ -416,8 +444,8 @@
         <p class="row-title">잠깐 웃고 리프레시</p>
         <p class="row-desc">Key &amp; Peele 영상 한 편, 아니면 프렌즈 정주행.</p>
         <div class="row-actions">
-          <a class="btn primary" href="https://www.youtube.com/@KeyAndPeele" target="_blank" rel="noopener">🎬 Key &amp; Peele 채널</a>
-          <a class="btn" href="https://www.netflix.com/title/70153404" target="_blank" rel="noopener">📺 넷플릭스 프렌즈 바로가기</a>
+          <a class="btn primary" href="https://www.youtube.com/@KeyAndPeele" target="_blank" rel="noopener">🎬 Key &amp; Peele</a>
+          <a class="btn" href="https://www.netflix.com/title/70153404" target="_blank" rel="noopener">📺 넷플릭스 프렌즈</a>
         </div>
         <div class="feed-wrap">
           <div class="feed-head">
@@ -445,10 +473,10 @@
 
         <div class="add-channel">
           <input type="text" id="newChannelName" placeholder="채널 이름 (예: 슈카월드)">
-          <input type="text" id="newChannelUrl" placeholder="채널 URL (https://youtube.com/@... 또는 /channel/UC...)">
+          <input type="text" id="newChannelUrl" placeholder="채널 URL">
           <button class="btn" onclick="addChannel()">+ 추가</button>
         </div>
-        <div class="channel-note">※ @핸들 주소를 넣으면 채널 ID를 자동으로 찾아요 (조금 시간이 걸릴 수 있어요)</div>
+        <div class="channel-note">※ @핸들 주소를 넣으면 채널 ID를 자동으로 찾아요.</div>
 
         <div class="feed-wrap">
           <div class="feed-head">
@@ -464,13 +492,13 @@
   </div>
 
   <div class="board-footer">
-    체크 상태는 매일 자정 기준으로 초기화되고, 구독 채널 목록은 계속 저장됩니다<br>
-    영상 피드는 공개 RSS 경로를 통해 불러오며, 네트워크 상황에 따라 표시되지 않을 수 있어요
+    체크 상태는 매일 자정 기준으로 초기화되고, 구독 채널 목록은 계속 저장됩니다.<br>
+    영상 피드는 공개 RSS 경로를 통해 불러오며, 네트워크 상황에 따라 표시되지 않을 수 있어요.
   </div>
 </div>
 
 <script>
-  // ---------- LOCAL STORAGE (persists in this browser, works outside Claude.ai too) ----------
+  // ---------- LOCAL STORAGE ----------
   const storage = {
     async get(key){
       const v = localStorage.getItem(key);
@@ -576,7 +604,7 @@
       const sentences = JSON.parse(cleaned);
 
       resultBox.innerHTML = sentences.map((s, i) =>
-        `<div class="ai-sentence"><b>${i+1}.</b> ${escapeHtml(s.en)}<br><span style="color:var(--paper-dim); font-size:12px;">${escapeHtml(s.note || '')}</span></div>`
+        `<div class="ai-sentence"><b>${i+1}.</b> ${escapeHtml(s.en)}<br><span style="color:var(--text-sub); font-size:12px;">${escapeHtml(s.note || '')}</span></div>`
       ).join('');
       resultBox.classList.add('show');
     }catch(e){
@@ -584,7 +612,7 @@
       errorBox.style.display = 'block';
     }finally{
       btn.disabled = false;
-      btn.textContent = '✨ 영어 문장 5개 만들기';
+      btn.textContent = '✨ 영어 문장 만들기';
     }
   }
 
@@ -596,7 +624,6 @@
 
   // ---------- VIDEO FEEDS (via public RSS + CORS proxy) ----------
   const PROXY = 'https://api.allorigins.win/raw?url=';
-
   const KEYPEELE_CHANNEL_ID = 'UCdN4aXTrHAtfgbVG9HjBmxQ';
 
   const DEFAULT_CHANNELS = [
@@ -664,7 +691,7 @@
       renderFeed('feed-keypeele', pickRandom(videos, 4));
     }catch(e){
       document.getElementById('feed-keypeele').innerHTML =
-        `<div class="feed-empty">지금은 영상 미리보기를 불러올 수 없어요. 위 채널 버튼으로 바로 이동해주세요.</div>`;
+        `<div class="feed-empty">영상 미리보기를 불러올 수 없어요. 위 채널 버튼을 이용해 주세요.</div>`;
     }
   }
 
@@ -686,7 +713,7 @@
       renderFeed('feed-channels', pickRandom(pool, 4));
     }catch(e){
       document.getElementById('feed-channels').innerHTML =
-        `<div class="feed-empty">지금은 영상 미리보기를 불러올 수 없어요.</div>`;
+        `<div class="feed-empty">영상 미리보기를 불러올 수 없어요.</div>`;
     }
   }
 
@@ -696,7 +723,7 @@
     renderFeed(which === 'keypeele' ? 'feed-keypeele' : 'feed-channels', pickRandom(pool, 4));
   }
 
-  // ---------- CHANNEL LIST (chips + storage) ----------
+  // ---------- CHANNEL LIST ----------
   async function getChannels(){
     try{
       const res = await storage.get('economy-channels-v2');
@@ -709,7 +736,7 @@
   function renderChips(channels){
     const el = document.getElementById('channelChips');
     if(!channels.length){
-      el.innerHTML = `<span style="font-size:12px; color:var(--paper-dim); font-family:var(--mono);">등록된 채널이 없어요.</span>`;
+      el.innerHTML = `<span style="font-size:12px; color:var(--text-sub);">등록된 채널이 없어요.</span>`;
       return;
     }
     el.innerHTML = channels.map((c, i) => `
@@ -725,8 +752,6 @@
     renderChips(channels);
   }
 
-  // resolve a channel_id (UCxxxx) from a /channel/UC... URL directly,
-  // or by fetching the page and scanning for "channelId":"UC..."
   async function resolveChannelId(url){
     const directMatch = url.match(/UC[0-9A-Za-z_-]{22}/);
     if(directMatch) return directMatch[0];
@@ -761,7 +786,7 @@
       urlInput.value = '';
       loadChannelsFeed();
     }catch(e){
-      alert('채널 ID를 찾지 못했어요. /channel/UC... 형식 주소를 넣거나 잠시 후 다시 시도해주세요.');
+      alert('채널 ID를 찾지 못했어요. 정확한 주소를 입력해 주세요.');
     }finally{
       addBtn.disabled = false;
       addBtn.textContent = '+ 추가';
