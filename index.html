@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 루틴 보드</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="루틴 보드">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12161d;
+    --panel:#1b212b;
+    --panel-2:#212836;
+    --line:#2c3646;
+    --amber:#f0a84e;
+    --amber-dim:#8a6a3c;
+    --teal:#5fc9b8;
+    --paper:#d7dee8;
+    --paper-dim:#8892a3;
+    --red:#e8664f;
+    --mono:'JetBrains Mono', monospace;
+    --sans:'Noto Sans KR', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1c2431 0%, var(--ink) 60%);
+    color:var(--paper);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:32px 20px 80px;
+  }
+  .board{
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  /* ---------- HEADER ---------- */
+  .board-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--amber);
+    padding-bottom:14px;
+    margin-bottom:6px;
+  }
+  .board-header .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--teal);
+    margin-bottom:6px;
+  }
+  .board-header h1{
+    font-family:var(--mono);
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:1px;
+    margin:0;
+    color:#fff;
+  }
+  .board-header .clock{
+    font-family:var(--mono);
+    font-size:28px;
+    font-weight:700;
+    color:var(--amber);
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .board-header .clock .date{
+    display:block;
+    font-size:12px;
+    color:var(--paper-dim);
+    font-weight:500;
+    letter-spacing:1px;
+    margin-top:2px;
+  }
+  .sub-line{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--paper-dim);
+    letter-spacing:1px;
+    padding:8px 2px 24px;
+    border-bottom:1px dashed var(--line);
+    margin-bottom:22px;
+  }
+  .progress-track{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .progress-bar{
+    width:120px;
+    height:6px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--teal);
+    width:0%;
+    transition:width .3s ease;
+  }
+
+  /* ---------- ROW ---------- */
+  .row{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--amber-dim);
+    margin-bottom:14px;
+    padding:16px 18px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .row.done{
+    border-left-color:var(--teal);
+    background:#182027;
+    opacity:.72;
+  }
+  .row-top{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+  }
+  .check{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border:2px solid var(--paper-dim);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-family:var(--mono);
+    font-size:14px;
+    color:transparent;
+    user-select:none;
+    margin-top:2px;
+  }
+  .row.done .check{
+    border-color:var(--teal);
+    background:var(--teal);
+    color:var(--ink);
+  }
+  .row-main{flex:1 1 auto; min-width:0;}
+  .row-meta{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--amber);
+    margin-bottom:4px;
+  }
+  .row-title{
+    font-size:17px;
+    font-weight:700;
+    color:#fff;
+    margin:0 0 4px;
+  }
+  .row-desc{
+    font-size:13px;
+    color:var(--paper-dim);
+    margin:0 0 12px;
+    line-height:1.5;
+  }
+  .row-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .btn{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.5px;
+    padding:9px 14px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--paper);
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:all .15s ease;
+  }
+  .btn:hover{ border-color:var(--amber); color:var(--amber); }
+  .btn.primary{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--ink);
+    font-weight:700;
+  }
+  .btn.primary:hover{ background:#ffbb63; color:var(--ink); }
+  .btn.ghost{ background:transparent; }
+  .btn:disabled{ opacity:.5; cursor:default; }
+
+  /* ---------- AI PANEL ---------- */
+  .ai-panel{
+    margin-top:12px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+  .ai-panel input[type=text]{
+    width:100%;
+    background:var(--ink);
+    border:1px solid var(--line);
+    color:var(--paper);
+    font-family:var(--sans);
+    font-size:14px;
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  .ai-panel input[type=text]:focus{ outline:none; border-color:var(--teal); }
+  .ai-result{
+    margin-top:12px;
+    display:none;
+    flex-direction:column;
+    gap:8px;
+  }
+  .ai-result.show{ display:flex; }
+  .ai-sentence{
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    color:var(--paper);
+    background:var(--panel-2);
+    border-left:2px solid var(--teal);
+    padding:8px 10px;
+  }
+  .ai-sentence b{ color:var(--teal); }
+  .ai-error{ color:var(--red); font-size:12px; font-family:var(--mono); margin-top:8px; }
+
+  /* ---------- VIDEO FEED ---------- */
+  .feed-wrap{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+  .feed-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .feed-head span{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--paper-dim);
+  }
+  .feed-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:10px;
+  }
+  .feed-card{
+    display:block;
+    text-decoration:none;
+    color:var(--paper);
+    background:var(--panel-2);
+    border:1px solid var(--line);
+  }
+  .feed-card:hover{ border-color:var(--amber); }
+  .feed-thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:var(--ink);
+  }
+  .feed-info{ padding:8px 9px; }
+  .feed-title{
+    font-size:12px;
+    line-height:1.4;
+    font-weight:500;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    margin:0 0 4px;
+  }
+  .feed-channel{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--teal);
+    letter-spacing:.5px;
+  }
+  .feed-loading, .feed-empty{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--paper-dim);
+    padding:10px 0;
+  }
+
+  /* ---------- CHANNEL LIST ---------- */
+  .channel-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .channel-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    padding:6px 8px;
+    font-size:12px;
+  }
+  .channel-chip a{ color:var(--paper); text-decoration:none; font-weight:500; }
+  .channel-chip a:hover{ color:var(--amber); }
+  .channel-chip .del{
+    background:none;border:none;color:var(--paper-dim);
+    cursor:pointer;font-size:14px;line-height:1;padding:0;
+  }
+  .channel-chip .del:hover{ color:var(--red); }
+  .add-channel{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+    flex-wrap:wrap;
+  }
+  .add-channel input{
+    flex:1;
+    min-width:140px;
+    background:var(--ink);
+    border:1px solid var(--line);
+    color:var(--paper);
+    font-size:13px;
+    padding:8px 10px;
+  }
+  .add-channel input:focus{ outline:none; border-color:var(--teal); }
+  .channel-note{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--paper-dim);
+    margin-top:6px;
+  }
+
+  .board-footer{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--paper-dim);
+    letter-spacing:1px;
+    margin-top:30px;
+    line-height:1.7;
+  }
+
+  ::selection{ background:var(--amber); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="board">
+
+  <div class="board-header">
+    <div>
+      <div class="eyebrow">DAILY RUNDOWN</div>
+      <h1>오늘의 루틴 보드</h1>
+    </div>
+    <div class="clock" id="clock">--:--:--<span class="date" id="dateLabel"></span></div>
+  </div>
+
+  <div class="sub-line">
+    <span id="statusLine">오늘 0 / 0 완료</span>
+    <span class="progress-track">
+      <span class="progress-bar"><span class="progress-fill" id="progressFill"></span></span>
+    </span>
+  </div>
+
+  <!-- ROW 1: 손에 잡히는 경제 -->
+  <div class="row" id="row-economy" data-key="economy">
+    <div class="row-top">
+      <div class="check" onclick="toggleDone('economy')">✓</div>
+      <div class="row-main">
+        <div class="row-meta">01 · ECONOMY BRIEFING</div>
+        <p class="row-title">손에 잡히는 경제</p>
+        <p class="row-desc">손경제 공부방 게시판에서 스크립트를 읽고, 유튜브 라이브 탭으로 바로 이동해요.</p>
+        <div class="row-actions">
+          <a class="btn primary" href="https://www.imbc.com/broad/radio/fm/economy/v2/setting/corner/daily/3709975_76330.html" target="_blank" rel="noopener">📄 손경제 공부방 (스크립트)</a>
+          <a class="btn" href="https://www.youtube.com/@%EC%86%90%EA%B2%BD%EC%A0%9C/streams" target="_blank" rel="noopener">▶ 유튜브 라이브</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: AI 영어 문장 -->
+  <div class="row" id="row-english" data-key="english">
+    <div class="row-top">
+      <div class="check" onclick="toggleDone('english')">✓</div>
+      <div class="row-main">
+        <div class="row-meta">02 · ENGLISH DRILL</div>
+        <p class="row-title">오늘 쓴 말, 영어 문장 5개로 만들기</p>
+        <p class="row-desc">평소에 자주 쓰는 한국어 표현을 넣으면 AI가 자연스러운 영어 문장 5개를 만들어줘요.</p>
+        <div class="ai-panel">
+          <input type="text" id="koreanInput" placeholder="예: 오늘 좀 피곤해서 일찍 자야겠어" />
+          <div class="row-actions">
+            <button class="btn primary" id="genBtn" onclick="generateSentences()">✨ 영어 문장 5개 만들기</button>
+          </div>
+          <div class="ai-error" id="aiError" style="display:none;"></div>
+          <div class="ai-result" id="aiResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Key & Peele + Netflix -->
+  <div class="row" id="row-funny" data-key="funny">
+    <div class="row-top">
+      <div class="check" onclick="toggleDone('funny')">✓</div>
+      <div class="row-main">
+        <div class="row-meta">03 · BREAK TIME</div>
+        <p class="row-title">잠깐 웃고 리프레시</p>
+        <p class="row-desc">Key &amp; Peele 영상 한 편, 아니면 프렌즈 정주행.</p>
+        <div class="row-actions">
+          <a class="btn primary" href="https://www.youtube.com/@KeyAndPeele" target="_blank" rel="noopener">🎬 Key &amp; Peele 채널</a>
+          <a class="btn" href="https://www.netflix.com/title/70153404" target="_blank" rel="noopener">📺 넷플릭스 프렌즈 바로가기</a>
+        </div>
+        <div class="feed-wrap">
+          <div class="feed-head">
+            <span>RANDOM PICKS</span>
+            <button class="btn ghost" onclick="reshuffle('keypeele')">🔀 다른 영상</button>
+          </div>
+          <div class="feed-grid" id="feed-keypeele">
+            <div class="feed-loading">영상을 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: 구독 채널 -->
+  <div class="row" id="row-channels" data-key="channels">
+    <div class="row-top">
+      <div class="check" onclick="toggleDone('channels')">✓</div>
+      <div class="row-main">
+        <div class="row-meta">04 · SUBSCRIPTIONS</div>
+        <p class="row-title">구독 중인 경제 유튜브 채널</p>
+        <p class="row-desc">등록된 채널들의 최신 영상을 무작위로 보여줘요.</p>
+
+        <div class="channel-chips" id="channelChips"></div>
+
+        <div class="add-channel">
+          <input type="text" id="newChannelName" placeholder="채널 이름 (예: 슈카월드)">
+          <input type="text" id="newChannelUrl" placeholder="채널 URL (https://youtube.com/@... 또는 /channel/UC...)">
+          <button class="btn" onclick="addChannel()">+ 추가</button>
+        </div>
+        <div class="channel-note">※ @핸들 주소를 넣으면 채널 ID를 자동으로 찾아요 (조금 시간이 걸릴 수 있어요)</div>
+
+        <div class="feed-wrap">
+          <div class="feed-head">
+            <span>RANDOM PICKS</span>
+            <button class="btn ghost" onclick="reshuffle('channels')">🔀 다른 영상</button>
+          </div>
+          <div class="feed-grid" id="feed-channels">
+            <div class="feed-loading">영상을 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-footer">
+    체크 상태는 매일 자정 기준으로 초기화되고, 구독 채널 목록은 계속 저장됩니다<br>
+    영상 피드는 공개 RSS 경로를 통해 불러오며, 네트워크 상황에 따라 표시되지 않을 수 있어요
+  </div>
+</div>
+
+<script>
+  // ---------- LOCAL STORAGE (persists in this browser, works outside Claude.ai too) ----------
+  const storage = {
+    async get(key){
+      const v = localStorage.getItem(key);
+      return v !== null ? { key, value: v } : null;
+    },
+    async set(key, value){
+      localStorage.setItem(key, value);
+      return { key, value };
+    }
+  };
+
+  // ---------- CLOCK ----------
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function updateClock(){
+    const now = new Date();
+    document.getElementById('clock').innerHTML =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}` +
+      `<span class="date">${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} (${['일','월','화','수','목','금','토'][now.getDay()]})</span>`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  function todayKey(){
+    const d = new Date();
+    return `checks:${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  const ROW_KEYS = ['economy','english','funny','channels'];
+  let doneState = {};
+
+  async function loadChecks(){
+    try{
+      const res = await storage.get(todayKey());
+      doneState = res ? JSON.parse(res.value) : {};
+    }catch(e){
+      doneState = {};
+    }
+    ROW_KEYS.forEach(k=>{
+      const row = document.getElementById('row-'+k);
+      if(doneState[k]) row.classList.add('done'); else row.classList.remove('done');
+    });
+    updateProgress();
+  }
+
+  async function toggleDone(key){
+    doneState[key] = !doneState[key];
+    const row = document.getElementById('row-'+key);
+    row.classList.toggle('done', !!doneState[key]);
+    updateProgress();
+    try{
+      await storage.set(todayKey(), JSON.stringify(doneState));
+    }catch(e){ console.error('저장 실패', e); }
+  }
+
+  function updateProgress(){
+    const total = ROW_KEYS.length;
+    const done = ROW_KEYS.filter(k=>doneState[k]).length;
+    document.getElementById('statusLine').textContent = `오늘 ${done} / ${total} 완료`;
+    document.getElementById('progressFill').style.width = `${(done/total)*100}%`;
+  }
+
+  // ---------- AI ENGLISH SENTENCES ----------
+  async function generateSentences(){
+    const input = document.getElementById('koreanInput').value.trim();
+    const errorBox = document.getElementById('aiError');
+    const resultBox = document.getElementById('aiResult');
+    const btn = document.getElementById('genBtn');
+    errorBox.style.display = 'none';
+    resultBox.classList.remove('show');
+    resultBox.innerHTML = '';
+
+    if(!input){
+      errorBox.textContent = '먼저 한국어 문장을 입력해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ 만드는 중...';
+
+    try{
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          messages: [
+            {
+              role: "user",
+              content: `다음은 한국어로 표현된 문장이야: "${input}"
+이 의미를 살려서, 자연스럽고 실생활에서 쓸 수 있는 영어 문장 5개를 난이도나 톤을 조금씩 다르게 만들어줘 (예: 캐주얼한 버전, 조금 formal한 버전, 짧은 버전 등).
+반드시 아래 JSON 형식으로만 응답하고, 다른 설명이나 텍스트는 절대 추가하지 마:
+[{"en":"영어 문장","note":"이 버전의 톤/뉘앙스를 한국어로 짧게 설명"}, ... 총 5개]`
+            }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      const textBlock = (data.content || []).map(b => b.text || '').join('');
+      const cleaned = textBlock.replace(/```json|```/g, '').trim();
+      const sentences = JSON.parse(cleaned);
+
+      resultBox.innerHTML = sentences.map((s, i) =>
+        `<div class="ai-sentence"><b>${i+1}.</b> ${escapeHtml(s.en)}<br><span style="color:var(--paper-dim); font-size:12px;">${escapeHtml(s.note || '')}</span></div>`
+      ).join('');
+      resultBox.classList.add('show');
+    }catch(e){
+      errorBox.textContent = '문장을 만들지 못했어요. 잠시 후 다시 시도해주세요.';
+      errorBox.style.display = 'block';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = '✨ 영어 문장 5개 만들기';
+    }
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- VIDEO FEEDS (via public RSS + CORS proxy) ----------
+  const PROXY = 'https://api.allorigins.win/raw?url=';
+
+  const KEYPEELE_CHANNEL_ID = 'UCdN4aXTrHAtfgbVG9HjBmxQ';
+
+  const DEFAULT_CHANNELS = [
+    { name: '슈카월드', channelId: 'UCsJ6RuBiTVWRX156FVbeaGg', url: 'https://www.youtube.com/channel/UCsJ6RuBiTVWRX156FVbeaGg' },
+    { name: '한국경제TV', channelId: 'UCF8AeLlUbEpKju6v1H6p8Eg', url: 'https://www.youtube.com/channel/UCF8AeLlUbEpKju6v1H6p8Eg' },
+    { name: '시골쥐의 도시생활', channelId: 'UCimq5GQ-7Cg9VmV0q0KOY3A', url: 'https://www.youtube.com/@countrysidemouse' },
+    { name: '할미언니', channelId: 'UCkZLa5fKPC9v550eOcfRHcg', url: 'https://www.youtube.com/channel/UCkZLa5fKPC9v550eOcfRHcg' },
+    { name: '김짠부 재테크', channelId: 'UCiHCmazdsMM9j3Jbqx3p7Ig', url: 'https://www.youtube.com/@zzanboo' }
+  ];
+
+  async function fetchChannelVideos(channelId, channelName){
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const res = await fetch(PROXY + encodeURIComponent(feedUrl));
+    if(!res.ok) throw new Error('feed fetch failed');
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    const entries = Array.from(xml.getElementsByTagName('entry'));
+    return entries.map(entry => {
+      const idNode = entry.getElementsByTagName('yt:videoId')[0];
+      const titleNode = entry.getElementsByTagName('title')[0];
+      const videoId = idNode ? idNode.textContent : null;
+      return videoId ? {
+        id: videoId,
+        title: titleNode ? titleNode.textContent : '',
+        channel: channelName,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        url: `https://www.youtube.com/watch?v=${videoId}`
+      } : null;
+    }).filter(Boolean);
+  }
+
+  function pickRandom(arr, n){
+    const copy = arr.slice();
+    const picked = [];
+    while(copy.length && picked.length < n){
+      const idx = Math.floor(Math.random() * copy.length);
+      picked.push(copy.splice(idx, 1)[0]);
+    }
+    return picked;
+  }
+
+  function renderFeed(containerId, videos){
+    const el = document.getElementById(containerId);
+    if(!videos.length){
+      el.innerHTML = `<div class="feed-empty">불러올 영상이 없어요.</div>`;
+      return;
+    }
+    el.innerHTML = videos.map(v => `
+      <a class="feed-card" href="${v.url}" target="_blank" rel="noopener">
+        <img class="feed-thumb" src="${v.thumbnail}" loading="lazy" alt="">
+        <div class="feed-info">
+          <p class="feed-title">${escapeHtml(v.title)}</p>
+          ${v.channel ? `<div class="feed-channel">${escapeHtml(v.channel)}</div>` : ''}
+        </div>
+      </a>
+    `).join('');
+  }
+
+  const feedPools = { keypeele: [], channels: [] };
+
+  async function loadKeyPeeleFeed(){
+    try{
+      const videos = await fetchChannelVideos(KEYPEELE_CHANNEL_ID, 'Key & Peele');
+      feedPools.keypeele = videos;
+      renderFeed('feed-keypeele', pickRandom(videos, 4));
+    }catch(e){
+      document.getElementById('feed-keypeele').innerHTML =
+        `<div class="feed-empty">지금은 영상 미리보기를 불러올 수 없어요. 위 채널 버튼으로 바로 이동해주세요.</div>`;
+    }
+  }
+
+  async function loadChannelsFeed(){
+    const channels = await getChannels();
+    if(!channels.length){
+      document.getElementById('feed-channels').innerHTML =
+        `<div class="feed-empty">등록된 채널이 없어요.</div>`;
+      return;
+    }
+    try{
+      const results = await Promise.allSettled(
+        channels.map(c => fetchChannelVideos(c.channelId, c.name))
+      );
+      const pool = results
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => r.value);
+      feedPools.channels = pool;
+      renderFeed('feed-channels', pickRandom(pool, 4));
+    }catch(e){
+      document.getElementById('feed-channels').innerHTML =
+        `<div class="feed-empty">지금은 영상 미리보기를 불러올 수 없어요.</div>`;
+    }
+  }
+
+  function reshuffle(which){
+    const pool = feedPools[which];
+    if(!pool || !pool.length) return;
+    renderFeed(which === 'keypeele' ? 'feed-keypeele' : 'feed-channels', pickRandom(pool, 4));
+  }
+
+  // ---------- CHANNEL LIST (chips + storage) ----------
+  async function getChannels(){
+    try{
+      const res = await storage.get('economy-channels-v2');
+      return res ? JSON.parse(res.value) : DEFAULT_CHANNELS.slice();
+    }catch(e){
+      return DEFAULT_CHANNELS.slice();
+    }
+  }
+
+  function renderChips(channels){
+    const el = document.getElementById('channelChips');
+    if(!channels.length){
+      el.innerHTML = `<span style="font-size:12px; color:var(--paper-dim); font-family:var(--mono);">등록된 채널이 없어요.</span>`;
+      return;
+    }
+    el.innerHTML = channels.map((c, i) => `
+      <span class="channel-chip">
+        <a href="${c.url}" target="_blank" rel="noopener">▶ ${escapeHtml(c.name)}</a>
+        <button class="del" onclick="removeChannel(${i})" title="삭제">✕</button>
+      </span>
+    `).join('');
+  }
+
+  async function loadChannels(){
+    const channels = await getChannels();
+    renderChips(channels);
+  }
+
+  // resolve a channel_id (UCxxxx) from a /channel/UC... URL directly,
+  // or by fetching the page and scanning for "channelId":"UC..."
+  async function resolveChannelId(url){
+    const directMatch = url.match(/UC[0-9A-Za-z_-]{22}/);
+    if(directMatch) return directMatch[0];
+
+    const res = await fetch(PROXY + encodeURIComponent(url));
+    if(!res.ok) throw new Error('channel page fetch failed');
+    const html = await res.text();
+    const match = html.match(/"channelId":"(UC[0-9A-Za-z_-]{22})"/) || html.match(/"externalId":"(UC[0-9A-Za-z_-]{22})"/);
+    if(!match) throw new Error('channel id not found');
+    return match[1];
+  }
+
+  async function addChannel(){
+    const nameInput = document.getElementById('newChannelName');
+    const urlInput = document.getElementById('newChannelUrl');
+    const name = nameInput.value.trim();
+    let url = urlInput.value.trim();
+    if(!name || !url) return;
+    if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    const addBtn = event.target;
+    addBtn.disabled = true;
+    addBtn.textContent = '확인 중...';
+
+    try{
+      const channelId = await resolveChannelId(url);
+      const channels = await getChannels();
+      channels.push({ name, url, channelId });
+      await storage.set('economy-channels-v2', JSON.stringify(channels));
+      renderChips(channels);
+      nameInput.value = '';
+      urlInput.value = '';
+      loadChannelsFeed();
+    }catch(e){
+      alert('채널 ID를 찾지 못했어요. /channel/UC... 형식 주소를 넣거나 잠시 후 다시 시도해주세요.');
+    }finally{
+      addBtn.disabled = false;
+      addBtn.textContent = '+ 추가';
+    }
+  }
+
+  async function removeChannel(index){
+    const channels = await getChannels();
+    channels.splice(index, 1);
+    await storage.set('economy-channels-v2', JSON.stringify(channels));
+    renderChips(channels);
+    loadChannelsFeed();
+  }
+
+  // ---------- INIT ----------
+  loadChecks();
+  loadChannels();
+  loadKeyPeeleFeed();
+  loadChannelsFeed();
+</script>
+
+</body>
+</html>
