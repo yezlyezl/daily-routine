@@ -219,42 +219,29 @@
   .btn.ghost:hover { background: var(--apple-blue-dim); }
   .btn:disabled { opacity: .5; cursor: default; }
 
-  /* ---------- AI PANEL (말끔한 텍스트 상자) ---------- */
+  /* ---------- AI PANEL (텍스트 영역 넓게 보정) ---------- */
   .ai-panel {
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--line-color);
   }
-  .ai-panel input[type=text], .ai-panel input[type=password] {
+  .ai-panel textarea {
     width: 100%;
+    height: 120px; /* 위아래로 넉넉하게 넓힘 */
     background: #f5f5f7;
     border: 1px solid transparent;
     border-radius: 12px;
     color: var(--text-main);
     font-family: var(--sans);
     font-size: 14px;
-    padding: 12px 16px;
+    padding: 14px 16px;
     margin-bottom: 12px;
+    resize: none; /* 크기 조절 수동 비활성화로 깔끔하게 */
     transition: all .2s ease;
-  }
-  .ai-panel input[type=text]:focus, .ai-panel input[type=password]:focus { outline: none; border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 3px var(--apple-blue-dim); }
-  
-  .ai-result {
-    margin-top: 16px;
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .ai-result.show { display: flex; }
-  .ai-sentence {
-    font-size: 14px;
     line-height: 1.6;
-    color: var(--text-main);
-    background: var(--soft-peach);
-    border-radius: 12px;
-    padding: 12px 16px;
   }
-  .ai-sentence b { color: var(--accent-orange); }
+  .ai-panel textarea:focus { outline: none; border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 3px var(--apple-blue-dim); }
+  
   .ai-error { color: var(--accent-orange); font-size: 13px; margin-top: 8px; }
 
   /* ---------- VIDEO FEED (핀터레스트/뉴스레터 감성 카드) ---------- */
@@ -399,7 +386,6 @@
     </span>
   </div>
 
-  <!-- ROW 1: 손에 잡히는 경제 -->
   <div class="row" id="row-economy" data-key="economy">
     <div class="row-top">
       <div class="check" onclick="toggleDone('economy')">✓</div>
@@ -414,27 +400,23 @@
     </div>
   </div>
 
-  <!-- ROW 2: AI 영어 문장 -->
   <div class="row" id="row-english" data-key="english">
     <div class="row-top">
       <div class="check" onclick="toggleDone('english')">✓</div>
       <div class="row-main">
         <p class="row-title"> 02 오늘 쓴 말, 영어 문장 5개로 만들기</p>
-        <p class="row-desc">평소에 자주 쓰는 한국어 표현을 넣으면 AI가 자연스러운 영어 문장 5개를 만들어줘요</p>
+        <p class="row-desc">평소에 자주 썼던 한국어 문장들을 입력창에 모아서 적어보세요. 버튼을 누르면 AI 맞춤 프롬프트가 복사됩니다.</p>
         <div class="ai-panel">
-          <input type="password" id="anthropicApiKey" placeholder="Anthropic API Key를 입력하세요 (sk-ant-...)" />
-          <input type="text" id="koreanInput" placeholder="예: 오늘 좀 피곤해서 일찍 자야겠어" />
+          <textarea id="koreanInput" placeholder="여기에 오늘 쓴 한국어 표현들을 줄바꿈하며 자유롭게 적어보세요.&#10;예:&#10;오늘 생각보다 정산 업무가 늦게 끝났어.&#10;서류 검증할 때 자꾸 오류가 나는데 개발자한테 문의해봐야겠다."></textarea>
           <div class="row-actions">
-            <button class="btn primary" id="genBtn" onclick="generateSentences()">✨ 영어 문장 만들기</button>
+            <button class="btn primary" id="copyBtn" onclick="copyPromptToClipboard()">📋 AI 프롬프트 복사하기</button>
           </div>
           <div class="ai-error" id="aiError" style="display:none;"></div>
-          <div class="ai-result" id="aiResult"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ROW 3: Key & Peele + Netflix -->
   <div class="row" id="row-funny" data-key="funny">
     <div class="row-top">
       <div class="check" onclick="toggleDone('funny')">✓</div>
@@ -458,7 +440,6 @@
     </div>
   </div>
 
-  <!-- ROW 4: 구독 채널 -->
   <div class="row" id="row-channels" data-key="channels">
     <div class="row-top">
       <div class="check" onclick="toggleDone('channels')">✓</div>
@@ -495,7 +476,7 @@
 </div>
 
 <script>
-  // ---------- LOCAL STORAGE (동기식 최적화) ----------
+  // ---------- LOCAL STORAGE ----------
   const storage = {
     get(key){
       const v = localStorage.getItem(key);
@@ -557,80 +538,38 @@
     document.getElementById('progressFill').style.width = `${(done/total)*100}%`;
   }
 
-  // ---------- AI ENGLISH SENTENCES ----------
-  async function generateSentences(){
-    const apiKey = document.getElementById('anthropicApiKey').value.trim();
+  // ---------- PROMPT COPY FUNCTION ----------
+  function copyPromptToClipboard(){
     const input = document.getElementById('koreanInput').value.trim();
     const errorBox = document.getElementById('aiError');
-    const resultBox = document.getElementById('aiResult');
-    const btn = document.getElementById('genBtn');
+    const copyBtn = document.getElementById('copyBtn');
     
     errorBox.style.display = 'none';
-    resultBox.classList.remove('show');
-    resultBox.innerHTML = '';
-
-    if(!apiKey){
-      errorBox.textContent = '먼저 Anthropic API Key를 입력해주세요.';
-      errorBox.style.display = 'block';
-      return;
-    }
 
     if(!input){
-      errorBox.textContent = '먼저 한국어 문장을 입력해주세요.';
+      errorBox.textContent = '먼저 한국어 문장을 입력창에 작성해주세요.';
       errorBox.style.display = 'block';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = '⏳ 만드는 중...';
+    // AI 앱에 바로 붙여넣기 가장 좋은 프롬프트 템플릿 조합
+    const finalPrompt = `다음은 내가 오늘 사용했거나 표현하고 싶은 한국어 문장들이야:\n\n"""\n${input}\n"""\n\n이 문장들의 뉘앙스를 자연스럽게 살려서 실생활에서 유용하게 쓸 수 있는 영어 표현으로 번역해줘. 입력한 내용들을 아울러서 총 5개 정도의 문장 세트를 만들어주면 좋겠어.\n\n각 문장마다 톤이나 난이도를 조금씩 다르게(예: 아주 캐주얼한 구어체, 비즈니스/격식체, 군더더기 없는 짧은 표현 등) 구성하고, 각 문장 아래에는 이 버전의 톤이나 미세한 뉘앙스 차이를 한국어로 아주 짤막하게 설명해줘.`;
 
-    // CORS 우회 프록시 결합
-    const anthropicUrl = "https://api.anthropic.com/v1/messages";
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(anthropicUrl)}`;
-
-    try{
-      const response = await fetch(proxyUrl, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01"
-        },
-        body: JSON.stringify({
-          model: "claude-3-5-sonnet-latest",
-          max_tokens: 1000,
-          messages: [
-            {
-              role: "user",
-              content: `다음은 한국어로 표현된 문장이야: "${input}"
-이 의미를 살려서, 자연스럽고 실생활에서 쓸 수 있는 영어 문장 5개를 난이도나 톤을 조금씩 다르게 만들어줘 (예: 캐주얼한 버전, 조금 formal한 버전, 짧은 버전 등).
-반드시 아래 JSON 형식으로만 응답하고, 다른 설명이나 텍스트는 절대 추가하지 마:
-[{"en":"영어 문장","note":"이 버전의 톤/뉘앙스를 한국어로 짧게 설명"}, ... 총 5개]`
-            }
-          ]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('API 호출 오류');
-      }
-
-      const data = await response.json();
-      const textBlock = (data.content || []).map(b => b.text || '').join('');
-      const cleaned = textBlock.replace(/```json|```/g, '').trim();
-      const sentences = JSON.parse(cleaned);
-
-      resultBox.innerHTML = sentences.map((s, i) =>
-        `<div class="ai-sentence"><b>${i+1}.</b> ${escapeHtml(s.en)}<br><span style="color:var(--text-sub); font-size:12px;">${escapeHtml(s.note || '')}</span></div>`
-      ).join('');
-      resultBox.classList.add('show');
-    }catch(e){
-      errorBox.textContent = '문장을 만들지 못했어요. API 키를 확인하시거나 잠시 후 다시 시도해주세요.';
+    navigator.clipboard.writeText(finalPrompt).then(() => {
+      const originalText = copyBtn.innerHTML;
+      copyBtn.innerHTML = '✓ 프롬프트 복사 완료!';
+      copyBtn.style.background = '#34c759'; // 일시적으로 초록색 하이라이트
+      copyBtn.style.borderColor = '#34c759';
+      
+      setTimeout(() => {
+        copyBtn.innerHTML = originalText;
+        copyBtn.style.background = '';
+        copyBtn.style.borderColor = '';
+      }, 2000);
+    }).catch(err => {
+      errorBox.textContent = '클립보드 복사에 실패했습니다. 문장을 직접 드래그해서 복사해주세요.';
       errorBox.style.display = 'block';
-    }finally{
-      btn.disabled = false;
-      btn.textContent = '✨ 영어 문장 만들기';
-    }
+    });
   }
 
   function escapeHtml(str){
