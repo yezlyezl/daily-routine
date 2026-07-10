@@ -25,7 +25,7 @@
     --sans: 'Noto Sans KR', sans-serif;
   }
   
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
   body { padding: 40px 20px 100px; }
   
@@ -225,7 +225,7 @@
     padding-top: 16px;
     border-top: 1px solid var(--line-color);
   }
-  .ai-panel input[type=text] {
+  .ai-panel input[type=text], .ai-panel input[type=password] {
     width: 100%;
     background: #f5f5f7;
     border: 1px solid transparent;
@@ -237,7 +237,7 @@
     margin-bottom: 12px;
     transition: all .2s ease;
   }
-  .ai-panel input[type=text]:focus { outline: none; border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 3px var(--apple-blue-dim); }
+  .ai-panel input[type=text]:focus, .ai-panel input[type=password]:focus { outline: none; border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 3px var(--apple-blue-dim); }
   
   .ai-result {
     margin-top: 16px;
@@ -422,6 +422,7 @@
         <p class="row-title"> 02 오늘 쓴 말, 영어 문장 5개로 만들기</p>
         <p class="row-desc">평소에 자주 쓰는 한국어 표현을 넣으면 AI가 자연스러운 영어 문장 5개를 만들어줘요</p>
         <div class="ai-panel">
+          <input type="password" id="anthropicApiKey" placeholder="Anthropic API Key를 입력하세요 (sk-ant-...)" />
           <input type="text" id="koreanInput" placeholder="예: 오늘 좀 피곤해서 일찍 자야겠어" />
           <div class="row-actions">
             <button class="btn primary" id="genBtn" onclick="generateSentences()">✨ 영어 문장 만들기</button>
@@ -494,13 +495,13 @@
 </div>
 
 <script>
-  // ---------- LOCAL STORAGE ----------
+  // ---------- LOCAL STORAGE (동기식 최적화) ----------
   const storage = {
-    async get(key){
+    get(key){
       const v = localStorage.getItem(key);
       return v !== null ? { key, value: v } : null;
     },
-    async set(key, value){
+    set(key, value){
       localStorage.setItem(key, value);
       return { key, value };
     }
@@ -525,9 +526,9 @@
   const ROW_KEYS = ['economy','english','funny','channels'];
   let doneState = {};
 
-  async function loadChecks(){
+  function loadChecks(){
     try{
-      const res = await storage.get(todayKey());
+      const res = storage.get(todayKey());
       doneState = res ? JSON.parse(res.value) : {};
     }catch(e){
       doneState = {};
@@ -539,13 +540,13 @@
     updateProgress();
   }
 
-  async function toggleDone(key){
+  function toggleDone(key){
     doneState[key] = !doneState[key];
     const row = document.getElementById('row-'+key);
     row.classList.toggle('done', !!doneState[key]);
     updateProgress();
     try{
-      await storage.set(todayKey(), JSON.stringify(doneState));
+      storage.set(todayKey(), JSON.stringify(doneState));
     }catch(e){ console.error('저장 실패', e); }
   }
 
@@ -558,13 +559,21 @@
 
   // ---------- AI ENGLISH SENTENCES ----------
   async function generateSentences(){
+    const apiKey = document.getElementById('anthropicApiKey').value.trim();
     const input = document.getElementById('koreanInput').value.trim();
     const errorBox = document.getElementById('aiError');
     const resultBox = document.getElementById('aiResult');
     const btn = document.getElementById('genBtn');
+    
     errorBox.style.display = 'none';
     resultBox.classList.remove('show');
     resultBox.innerHTML = '';
+
+    if(!apiKey){
+      errorBox.textContent = '먼저 Anthropic API Key를 입력해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
 
     if(!input){
       errorBox.textContent = '먼저 한국어 문장을 입력해주세요.';
@@ -575,12 +584,20 @@
     btn.disabled = true;
     btn.textContent = '⏳ 만드는 중...';
 
+    // CORS 우회 프록시 결합
+    const anthropicUrl = "https://api.anthropic.com/v1/messages";
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(anthropicUrl)}`;
+
     try{
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch(proxyUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01"
+        },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
+          model: "claude-3-5-sonnet-latest",
           max_tokens: 1000,
           messages: [
             {
@@ -594,6 +611,10 @@
         })
       });
 
+      if (!response.ok) {
+        throw new Error('API 호출 오류');
+      }
+
       const data = await response.json();
       const textBlock = (data.content || []).map(b => b.text || '').join('');
       const cleaned = textBlock.replace(/```json|```/g, '').trim();
@@ -604,7 +625,7 @@
       ).join('');
       resultBox.classList.add('show');
     }catch(e){
-      errorBox.textContent = '문장을 만들지 못했어요. 잠시 후 다시 시도해주세요.';
+      errorBox.textContent = '문장을 만들지 못했어요. API 키를 확인하시거나 잠시 후 다시 시도해주세요.';
       errorBox.style.display = 'block';
     }finally{
       btn.disabled = false;
@@ -692,7 +713,7 @@
   }
 
   async function loadChannelsFeed(){
-    const channels = await getChannels();
+    const channels = getChannels();
     if(!channels.length){
       document.getElementById('feed-channels').innerHTML =
         `<div class="feed-empty">등록된 채널이 없어요.</div>`;
@@ -720,9 +741,9 @@
   }
 
   // ---------- CHANNEL LIST ----------
-  async function getChannels(){
+  function getChannels(){
     try{
-      const res = await storage.get('economy-channels-v2');
+      const res = storage.get('economy-channels-v2');
       return res ? JSON.parse(res.value) : DEFAULT_CHANNELS.slice();
     }catch(e){
       return DEFAULT_CHANNELS.slice();
@@ -743,8 +764,8 @@
     `).join('');
   }
 
-  async function loadChannels(){
-    const channels = await getChannels();
+  function loadChannels(){
+    const channels = getChannels();
     renderChips(channels);
   }
 
@@ -774,9 +795,9 @@
 
     try{
       const channelId = await resolveChannelId(url);
-      const channels = await getChannels();
+      const channels = getChannels();
       channels.push({ name, url, channelId });
-      await storage.set('economy-channels-v2', JSON.stringify(channels));
+      storage.set('economy-channels-v2', JSON.stringify(channels));
       renderChips(channels);
       nameInput.value = '';
       urlInput.value = '';
@@ -789,10 +810,10 @@
     }
   }
 
-  async function removeChannel(index){
-    const channels = await getChannels();
+  function removeChannel(index){
+    const channels = getChannels();
     channels.splice(index, 1);
-    await storage.set('economy-channels-v2', JSON.stringify(channels));
+    storage.set('economy-channels-v2', JSON.stringify(channels));
     renderChips(channels);
     loadChannelsFeed();
   }
